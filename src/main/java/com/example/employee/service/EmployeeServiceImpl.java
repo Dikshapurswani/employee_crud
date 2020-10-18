@@ -10,6 +10,8 @@ import org.springframework.stereotype.Service;
 
 import com.example.employee.dto.EmployeeDto;
 import com.example.employee.entity.EmployeeEntity;
+import com.example.employee.exception.BadRequest;
+import com.example.employee.exception.InternalServerError;
 import com.example.employee.repository.EmployeeRepository;
 
 @Service
@@ -21,27 +23,36 @@ public class EmployeeServiceImpl implements EmployeeService {
 
 	ModelMapper modelMapper = new ModelMapper();
 	@Override
-	public List<EmployeeDto> findAll() {
+	public List<EmployeeDto> findAll() throws InternalServerError{
+		try {
+			List<EmployeeEntity> employeeEntityList=employeeRepository.findAll();
+			List<EmployeeDto> employeeDtoList=employeeEntityList
+					.stream()
+					.map(employee -> modelMapper.map(employee, EmployeeDto.class))
+					 .collect(Collectors.toList());
+					
+			return employeeDtoList;
+		}
+		catch(Exception e) {
+			throw new InternalServerError("Employees couldn't be fetched");
+		}
 		
-		List<EmployeeEntity> employeeEntityList=employeeRepository.findAll();
-		List<EmployeeDto> employeeDto=employeeEntityList
-				.stream()
-				.map(employee -> modelMapper.map(employee, EmployeeDto.class))
-				 .collect(Collectors.toList());
-				
-		return employeeDto;
 	}
 
 	@Override
-	public EmployeeDto findById(String id) {
+	public EmployeeDto findById(String id) throws BadRequest,InternalServerError {
 		Optional<EmployeeEntity> employee=employeeRepository.findById(id );
 		EmployeeDto employeeDto=null;
 		if (employee.isPresent()) {
-			employeeDto=modelMapper.map(employee.get(), EmployeeDto.class);
-					
+			try {
+				employeeDto=modelMapper.map(employee.get(), EmployeeDto.class);
+			}
+			catch(Exception e) {
+				new InternalServerError("Employee couldn't be fetched");
+			}			
 		}
 		else {
-			throw new RuntimeException("Employee not found!");
+			throw new BadRequest("Could not finf employee with id :"+id);
 		}
 		return employeeDto;
 		
@@ -49,7 +60,7 @@ public class EmployeeServiceImpl implements EmployeeService {
 	}
 
 	@Override
-	public String save(EmployeeDto employee) {
+	public String save(EmployeeDto employee) throws InternalServerError{
 		String message=null;
 		String id=employee.getId();
 		String phoneNumber=employee.getPhoneNumber();
@@ -61,36 +72,48 @@ public class EmployeeServiceImpl implements EmployeeService {
 		 */
 		if(phoneNumber==null || firstName==null || lastName==null || email==null) {
 			
-			EmployeeEntity emp1=modelMapper.map(this.findById(id), EmployeeEntity.class); 
-			if(phoneNumber==null) {
-				phoneNumber=emp1.getPhoneNumber();			
-				}
-			if(firstName==null) {
-				firstName=emp1.getFirstName()	;		
-				}
-			if(lastName==null) {
-				lastName=emp1.getLastName();			
-				}
-			if(email==null) {
-				email=emp1.getEmailId();			
-				}
-			employee.setPhoneNumber(phoneNumber);
-			employee.setFirstName(firstName);
-			employee.setLastName(lastName);
-			employee.setEmailId(email);
-			
-			EmployeeDto emp=modelMapper.map(employeeRepository.saveAndFlush
-					(modelMapper.map(employee, EmployeeEntity.class)),EmployeeDto.class);
-			message="Successfully updated employee with id: "+emp.getId();
+			try {
+				EmployeeEntity emp1=modelMapper.map(this.findById(id), EmployeeEntity.class); 
+				if(phoneNumber==null) {
+					phoneNumber=emp1.getPhoneNumber();			
+					}
+				if(firstName==null) {
+					firstName=emp1.getFirstName()	;		
+					}
+				if(lastName==null) {
+					lastName=emp1.getLastName();			
+					}
+				if(email==null) {
+					email=emp1.getEmailId();			
+					}
+				employee.setPhoneNumber(phoneNumber);
+				employee.setFirstName(firstName);
+				employee.setLastName(lastName);
+				employee.setEmailId(email);
+				
+				EmployeeDto emp=modelMapper.map(employeeRepository.saveAndFlush
+						(modelMapper.map(employee, EmployeeEntity.class)),EmployeeDto.class);
+				message="Successfully updated employee with id: "+emp.getId();
+			}
+			catch(Exception e) {
+				throw new InternalServerError("Employee couldn't be updated with id :"+id);
+			}
+		
 			
 		}
 		/* 
 		 * insert a new employee
 		 */
 		else {
-			EmployeeDto emp=modelMapper.map(employeeRepository.saveAndFlush
-					(modelMapper.map(employee, EmployeeEntity.class)),EmployeeDto.class);
-			message="Successfully added employee with id: "+emp.getId();
+			try {
+				EmployeeDto emp=modelMapper.map(employeeRepository.saveAndFlush
+						(modelMapper.map(employee, EmployeeEntity.class)),EmployeeDto.class);
+				message="Successfully added employee with id: "+emp.getId();
+			}
+			catch(Exception e) {
+				throw new InternalServerError("Employee couldn't be added with id :"+id);
+			}
+			
 		}
 		return message;
 		   
@@ -98,10 +121,15 @@ public class EmployeeServiceImpl implements EmployeeService {
 	}
 
 	@Override
-	public String delete(String id) {
+	public String delete(String id) throws BadRequest {
 	 
-		employeeRepository.deleteById(id );
-		return "Successfully deleted employee with id: "+id;
+		try {
+			employeeRepository.deleteById(id );
+			return "Successfully deleted employee with id: "+id;
+		}
+		catch(Exception e) {
+			throw new BadRequest("Employee with id "+id+" couldn't be found");
+		}
 	}
 
 }

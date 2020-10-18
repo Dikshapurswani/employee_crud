@@ -5,6 +5,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import com.example.employee.dto.EmployeeDto;
+import com.example.employee.exception.InternalServerError;
 import com.example.employee.service.EmployeeService;
 
 @Component
@@ -14,7 +15,7 @@ public class Consumer {
 	private EmployeeService employeeService;
 
 	@RabbitListener(queues = "${rabbitmq.queue}")
-	public void recievedMessage(EmployeeDto employee) {
+	public void recievedMessage(EmployeeDto employee) throws InternalServerError{
 		String message=employeeService.save(employee);
 		System.out.println(message);
 	}

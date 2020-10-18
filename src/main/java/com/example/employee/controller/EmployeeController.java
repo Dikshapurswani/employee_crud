@@ -15,11 +15,13 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.example.employee.config.RabbitmqConfig;
 import com.example.employee.dto.EmployeeDto;
+import com.example.employee.exception.BadRequest;
+import com.example.employee.exception.InternalServerError;
 import com.example.employee.rabbitmq.Sender;
 import com.example.employee.service.EmployeeServiceImpl;
 
 @RestController
-@RequestMapping("/api")
+@RequestMapping("/employee")
 public class EmployeeController {
 
 	@Autowired
@@ -35,14 +37,14 @@ public class EmployeeController {
 	@Autowired
 	private RabbitTemplate rabbitTemplate;
 	
-	@GetMapping("/employees")
-	public List<EmployeeDto> findAll(){
+	@GetMapping("/getAll")
+	public List<EmployeeDto> findAll() throws InternalServerError{
 		return employeeService.findAll();
 	}
 	
 	
-	@GetMapping("/employees/{id}")
-	public EmployeeDto getEmployee(@PathVariable String id ) {
+	@GetMapping("/find/{id}")
+	public EmployeeDto getEmployee(@PathVariable String id ) throws InternalServerError,BadRequest {
 		   EmployeeDto employee=employeeService.findById(id);
 		   
 		   if( employee==null){
@@ -51,34 +53,27 @@ public class EmployeeController {
 		   return employee;
 	}
 	
-	@PostMapping("employees")
-	public String addEmployee(@RequestBody EmployeeDto employee ) {
+	@PostMapping("/add")
+	public String addEmployee(@RequestBody EmployeeDto employee ) throws InternalServerError{
 		String message=employeeService.save(employee);
 		return message;
 		
 	}
 	
 	//Update
-		@PutMapping("/employees")
-		public String  updateEmployee(@RequestBody EmployeeDto employee) {
+		@PutMapping("/update")
+		public String  updateEmployee(@RequestBody EmployeeDto employee) throws InternalServerError{
 			sender.sendMessage(rabbitTemplate, rabbitmqConfig.getExchange(),
 					employee, rabbitmqConfig.getRoutingKey());
-//			String message=employeeService.save(employee);
+
 			return "message sent to queue";
 		}
 		
 		//Delete
-		@DeleteMapping("/employees/{id}")
-		public String deleteEmployee(@PathVariable String id) {
-			EmployeeDto employee=employeeService.findById(id);
-			if (employee==null) {
-				throw new RuntimeException("employee not found"+id);
-			}
-			
-			else {
-				return employeeService.delete(id);
-//				return "deleted employee"+id;
-			}
+		@DeleteMapping("/delete/{id}")
+		public String deleteEmployee(@PathVariable String id) throws BadRequest{
+			String message=employeeService.delete(id);
+			return message;
 		}
 		
 		
