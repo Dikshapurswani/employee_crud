@@ -18,6 +18,11 @@ public class RedisConfig {
     private String REDIS_HOSTNAME;
     @Value("${spring.redis.port}")
     private int REDIS_PORT;
+    
+    /* 
+     * Jedis is a client to ccommunicate between redis server and appliation client
+     * Jedis connection factory is to query data from redis server
+     */
 
     @Bean
     protected JedisConnectionFactory jedisConnectionFactory() {

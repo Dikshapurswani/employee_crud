@@ -13,6 +13,7 @@ import com.example.employee.entity.EmployeeEntity;
 import com.example.employee.exception.BadRequest;
 import com.example.employee.exception.InternalServerError;
 import com.example.employee.repository.EmployeeRepository;
+import com.example.employee.repository.RedisRepository;
 
 @Service
 public class EmployeeServiceImpl implements EmployeeService {
@@ -20,12 +21,21 @@ public class EmployeeServiceImpl implements EmployeeService {
 	@Autowired
 	private EmployeeRepository employeeRepository;
 	
-
+	@Autowired
+	private RedisRepository redisRepository;
+	
 	ModelMapper modelMapper = new ModelMapper();
 	@Override
 	public List<EmployeeDto> findAll() throws InternalServerError{
 		try {
-			List<EmployeeEntity> employeeEntityList=employeeRepository.findAll();
+			/*
+			 * If all employees are not present in redis cache
+			 */
+			if (redisRepository.getSize()!=employeeRepository.count()) {
+				redisRepository.saveAll(employeeRepository.findAll());
+				
+			}
+			List<EmployeeEntity> employeeEntityList=redisRepository.findAll();
 			List<EmployeeDto> employeeDtoList=employeeEntityList
 					.stream()
 					.map(employee -> modelMapper.map(employee, EmployeeDto.class))
@@ -34,6 +44,7 @@ public class EmployeeServiceImpl implements EmployeeService {
 			return employeeDtoList;
 		}
 		catch(Exception e) {
+			e.printStackTrace();
 			throw new InternalServerError("Employees couldn't be fetched");
 		}
 		
@@ -41,19 +52,35 @@ public class EmployeeServiceImpl implements EmployeeService {
 
 	@Override
 	public EmployeeDto findById(String id) throws BadRequest,InternalServerError {
-		Optional<EmployeeEntity> employee=employeeRepository.findById(id );
+		
+		/*
+		 * check if employee in cache
+		 */
+		
 		EmployeeDto employeeDto=null;
-		if (employee.isPresent()) {
-			try {
-				employeeDto=modelMapper.map(employee.get(), EmployeeDto.class);
+		EmployeeEntity employee=redisRepository.findById(id );
+		if (employee==null) {
+			Optional<EmployeeEntity> employee1=employeeRepository.findById(id );
+			
+			if (employee1.isPresent()) {
+				try {
+					employeeDto=modelMapper.map(employee1.get(), EmployeeDto.class);
+					redisRepository.save(employee1.get());
+				}
+				catch(Exception e) {
+					new InternalServerError("Employee couldn't be fetched");
+				}			
 			}
-			catch(Exception e) {
-				new InternalServerError("Employee couldn't be fetched");
-			}			
+			else {
+				throw new BadRequest("Could not finf employee with id :"+id);
+			}
+			
 		}
 		else {
-			throw new BadRequest("Could not finf employee with id :"+id);
+			employeeDto=modelMapper.map(employee, EmployeeDto.class);
 		}
+		
+		
 		return employeeDto;
 		
 		
@@ -91,8 +118,10 @@ public class EmployeeServiceImpl implements EmployeeService {
 				employee.setLastName(lastName);
 				employee.setEmailId(email);
 				
+				EmployeeEntity employee1=modelMapper.map(employee, EmployeeEntity.class);
 				EmployeeDto emp=modelMapper.map(employeeRepository.saveAndFlush
-						(modelMapper.map(employee, EmployeeEntity.class)),EmployeeDto.class);
+						(employee1),EmployeeDto.class);
+				redisRepository.save(employee1);
 				message="Successfully updated employee with id: "+emp.getId();
 			}
 			catch(Exception e) {
@@ -106,8 +135,10 @@ public class EmployeeServiceImpl implements EmployeeService {
 		 */
 		else {
 			try {
+				EmployeeEntity employee1=modelMapper.map(employee, EmployeeEntity.class);
 				EmployeeDto emp=modelMapper.map(employeeRepository.saveAndFlush
-						(modelMapper.map(employee, EmployeeEntity.class)),EmployeeDto.class);
+						(employee1),EmployeeDto.class);
+				redisRepository.save(employee1);
 				message="Successfully added employee with id: "+emp.getId();
 			}
 			catch(Exception e) {
@@ -125,6 +156,7 @@ public class EmployeeServiceImpl implements EmployeeService {
 	 
 		try {
 			employeeRepository.deleteById(id );
+			redisRepository.delete(id);
 			return "Successfully deleted employee with id: "+id;
 		}
 		catch(Exception e) {
