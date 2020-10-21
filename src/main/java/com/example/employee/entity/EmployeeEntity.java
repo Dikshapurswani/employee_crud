@@ -14,7 +14,6 @@ import org.hibernate.annotations.GenericGenerator;
 @Entity
 @DynamicUpdate
 @Table(name="employee")
-//@JsonIdentityInfo(generator = ObjectIdGenerators.IntSequenceGenerator.class, property = "@id",scope=EmployeeDto.class)
 
 public class EmployeeEntity implements Serializable {
 

@@ -72,7 +72,7 @@ public class EmployeeServiceImpl implements EmployeeService {
 				}			
 			}
 			else {
-				throw new BadRequest("Could not finf employee with id :"+id);
+				throw new BadRequest("Could not find employee with id :"+id);
 			}
 			
 		}

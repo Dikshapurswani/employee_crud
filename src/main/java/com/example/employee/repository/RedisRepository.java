@@ -25,7 +25,7 @@ public class RedisRepository {
     }
 
     public List<EmployeeEntity> findAll() {
-        return (List<EmployeeEntity>) hashOperations.entries("EMPLOYEE");
+        return  hashOperations.values("EMPLOYEE");
     }
 
     public EmployeeEntity findById(String id) {
