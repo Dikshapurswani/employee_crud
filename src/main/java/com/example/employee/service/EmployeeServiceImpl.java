@@ -125,6 +125,7 @@ public class EmployeeServiceImpl implements EmployeeService {
 				message="Successfully updated employee with id: "+emp.getId();
 			}
 			catch(Exception e) {
+				e.printStackTrace();
 				throw new InternalServerError("Employee couldn't be updated with id :"+id);
 			}
 		
