@@ -27,16 +27,6 @@ public class EmployeeController {
 	@Autowired
 	private EmployeeServiceImpl employeeService;
 	
-	/* 
-	 * Using rabbitMq with update api
-	 */
-	@Autowired
-	private Sender sender;
-	@Autowired
-	private RabbitmqConfig rabbitmqConfig;
-	@Autowired
-	private RabbitTemplate rabbitTemplate;
-	
 	@GetMapping("/getAll")
 	public List<EmployeeDto> findAll() throws InternalServerError{
 		return employeeService.findAll();
@@ -63,10 +53,8 @@ public class EmployeeController {
 	//Update
 		@PutMapping("/update")
 		public String  updateEmployee(@RequestBody EmployeeDto employee) throws InternalServerError{
-			sender.sendMessage(rabbitTemplate, rabbitmqConfig.getExchange(),
-					employee, rabbitmqConfig.getRoutingKey());
-
-			return "message sent to queue";
+			String message=employeeService.save(employee);
+			return message;
 		}
 		
 		//Delete
