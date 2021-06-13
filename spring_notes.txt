@@ -1,0 +1,42 @@
+ //  https://www.baeldung.com/mapstruct
+
+//   Spring @Repository annotation is used to indicate that the class provides the mechanism for storage, retrieval, search, update and delete operation on objects.
+
+//   EntityManager is a part of the Java Persistence API. Chiefly, it implements the programming interfaces and lifecycle rules defined by the JPA 2.0 specification.
+
+Moreover, we can access the Persistence Context, by using the APIs in EntityManager.
+
+
+//
+Autowiring feature of spring framework enables you to inject the object dependency implicitly. It internally uses setter or constructor injection.
+
+Autowiring can't be used to inject primitive and string values. It works with reference only.
+
+Advantage of Autowiring
+It requires the less code because we don't need to write the code to inject the dependency explicitly.
+
+
+//The dao class will have sessionFactory injected which will be used to create hibernate session and connect to database. 
+
+
+//Redis:
+Redis (Remote Dictionary Server) is an in-memory data structure project implementing a distributed, in-memory key-value database with optional durability. Redis supports different kinds of abstract data structures, such as strings, lists, maps, sets, sorted sets, HyperLogLogs, bitmaps, streams, and spatial indexes.
+Spring Boot is Spring's convention-over-configuration solution for creating stand-alone, production-grade Spring-based Applications that you can "just run". It is preconfigured with the Spring team's "opinionated view" of the best configuration and use of the Spring platform and third-party libraries so you can get started with minimum fuss. Most Spring Boot applications need very little Spring configuration.
+Spring's data access framework addresses common difficulties developers face when working with databases in applications. Support is provided for all popular data access frameworks in Java: JDBC, iBatis/MyBatis, Hibernate, Java Data Objects (JDO), Java Persistence API (JPA), Oracle TopLink, Apache OJB, and Apache Cayenne, among others.
+
+
+####Jedis is a client to ccommunicate between redis server and appliation client
+     * Jedis connection factory is to query data from redis server
+     https://dzone.com/articles/implementation-of-redis-in-micro-servicespring-boo
+     https://www.devglan.com/spring-boot/spring-boot-redis-cache
+
+
+
+#### kafka :https://dzone.com/articles/magic-of-kafka-with-spring-boot
+            https://www.geeksforgeeks.org/how-to-install-and-run-apache-kafka-on-windows/
+         .\bin\windows\zookeeper-server-start.bat .\config\zookeeper.properties
+         .\bin\windows\kafka-server-start.bat .\config\server.properties
+         
+
+
+#### Elaastic Search : https://www.guru99.com/elk-stack-tutorial.html
